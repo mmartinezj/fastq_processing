@@ -1,0 +1,257 @@
+---
+title: "RNA seq analysis: data process pipeline"
+author: "Miriam Martinez"
+date: "2023-01-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(include = TRUE, echo = TRUE, message = FALSE, warning = FALSE, eval = FALSE)
+
+```
+
+## Fastq pretreatment
+
+Concatenate the different runs for each sample, respecting R and F reads
+
+```{bash}
+
+#!/bin/bash
+cd /home/proyectos/genpsych/RNAseq/RNAseq_FastaQ/
+for d in BWH--[0-9][0-9][0-9]
+do
+	cd $d
+	#Uncompress
+	gunzip -c *R1.fastq.gz > $d_R1.fastq
+	gunzip -c *R2.fastq.gz > $d_R2.fastq
+	#Move to my folder
+	mv *fastq ../fastqInes	
+	cd ..
+	echo continuing
+done
+
+```
+
+### First FastQC analysis: fastqc1.sh
+
+```{bash}
+
+#!/bin/bash
+
+module load fastqc/0.11.9
+
+fastqc *fastq -t 20 -o FASTQC
+
+```
+
+### Trimming
+
+To produce trimming commands: produce_trim_commands.sh
+
+```{bash}
+
+#!/bin/bash
+
+for i in `ls -1 *R1.fastq | sed 's/\_R1.fastq//'`; 
+do 
+echo java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 
+-phred33 $i\_R1.fastq $i\_R2.fastq $i\_R1_paired.fq.gz $i\_R1_unpaired.fq.gz $i\_R2_paired.fq.gz $i\_R2_unpaired.fq.gz 
+SLIDINGWINDOW:4:20 MINLEN:50 >> trim_cmd; 
+done
+
+```
+
+### For the trimming:
+
+trim.sh
+
+```{bash}
+
+#!/bin/bash
+
+module load trimmomatic/0.39
+
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--000_R1.fastq BWH--000_R2.fastq BWH--000_R1_paired.fq.gz BWH--000_R1_unpaired.fq.gz BWH--000_R2_paired.fq.gz BWH--000_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--001_R1.fastq BWH--001_R2.fastq BWH--001_R1_paired.fq.gz BWH--001_R1_unpaired.fq.gz BWH--001_R2_paired.fq.gz BWH--001_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--002_R1.fastq BWH--002_R2.fastq BWH--002_R1_paired.fq.gz BWH--002_R1_unpaired.fq.gz BWH--002_R2_paired.fq.gz BWH--002_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--003_R1.fastq BWH--003_R2.fastq BWH--003_R1_paired.fq.gz BWH--003_R1_unpaired.fq.gz BWH--003_R2_paired.fq.gz BWH--003_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--004_R1.fastq BWH--004_R2.fastq BWH--004_R1_paired.fq.gz BWH--004_R1_unpaired.fq.gz BWH--004_R2_paired.fq.gz BWH--004_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--005_R1.fastq BWH--005_R2.fastq BWH--005_R1_paired.fq.gz BWH--005_R1_unpaired.fq.gz BWH--005_R2_paired.fq.gz BWH--005_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--006_R1.fastq BWH--006_R2.fastq BWH--006_R1_paired.fq.gz BWH--006_R1_unpaired.fq.gz BWH--006_R2_paired.fq.gz BWH--006_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--007_R1.fastq BWH--007_R2.fastq BWH--007_R1_paired.fq.gz BWH--007_R1_unpaired.fq.gz BWH--007_R2_paired.fq.gz BWH--007_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--008_R1.fastq BWH--008_R2.fastq BWH--008_R1_paired.fq.gz BWH--008_R1_unpaired.fq.gz BWH--008_R2_paired.fq.gz BWH--008_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--009_R1.fastq BWH--009_R2.fastq BWH--009_R1_paired.fq.gz BWH--009_R1_unpaired.fq.gz BWH--009_R2_paired.fq.gz BWH--009_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--010_R1.fastq BWH--010_R2.fastq BWH--010_R1_paired.fq.gz BWH--010_R1_unpaired.fq.gz BWH--010_R2_paired.fq.gz BWH--010_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--011_R1.fastq BWH--011_R2.fastq BWH--011_R1_paired.fq.gz BWH--011_R1_unpaired.fq.gz BWH--011_R2_paired.fq.gz BWH--011_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--012_R1.fastq BWH--012_R2.fastq BWH--012_R1_paired.fq.gz BWH--012_R1_unpaired.fq.gz BWH--012_R2_paired.fq.gz BWH--012_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--013_R1.fastq BWH--013_R2.fastq BWH--013_R1_paired.fq.gz BWH--013_R1_unpaired.fq.gz BWH--013_R2_paired.fq.gz BWH--013_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--014_R1.fastq BWH--014_R2.fastq BWH--014_R1_paired.fq.gz BWH--014_R1_unpaired.fq.gz BWH--014_R2_paired.fq.gz BWH--014_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--015_R1.fastq BWH--015_R2.fastq BWH--015_R1_paired.fq.gz BWH--015_R1_unpaired.fq.gz BWH--015_R2_paired.fq.gz BWH--015_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--016_R1.fastq BWH--016_R2.fastq BWH--016_R1_paired.fq.gz BWH--016_R1_unpaired.fq.gz BWH--016_R2_paired.fq.gz BWH--016_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--017_R1.fastq BWH--017_R2.fastq BWH--017_R1_paired.fq.gz BWH--017_R1_unpaired.fq.gz BWH--017_R2_paired.fq.gz BWH--017_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--018_R1.fastq BWH--018_R2.fastq BWH--018_R1_paired.fq.gz BWH--018_R1_unpaired.fq.gz BWH--018_R2_paired.fq.gz BWH--018_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--019_R1.fastq BWH--019_R2.fastq BWH--019_R1_paired.fq.gz BWH--019_R1_unpaired.fq.gz BWH--019_R2_paired.fq.gz BWH--019_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--020_R1.fastq BWH--020_R2.fastq BWH--020_R1_paired.fq.gz BWH--020_R1_unpaired.fq.gz BWH--020_R2_paired.fq.gz BWH--020_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--021_R1.fastq BWH--021_R2.fastq BWH--021_R1_paired.fq.gz BWH--021_R1_unpaired.fq.gz BWH--021_R2_paired.fq.gz BWH--021_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--022_R1.fastq BWH--022_R2.fastq BWH--022_R1_paired.fq.gz BWH--022_R1_unpaired.fq.gz BWH--022_R2_paired.fq.gz BWH--022_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--023_R1.fastq BWH--023_R2.fastq BWH--023_R1_paired.fq.gz BWH--023_R1_unpaired.fq.gz BWH--023_R2_paired.fq.gz BWH--023_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--024_R1.fastq BWH--024_R2.fastq BWH--024_R1_paired.fq.gz BWH--024_R1_unpaired.fq.gz BWH--024_R2_paired.fq.gz BWH--024_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--025_R1.fastq BWH--025_R2.fastq BWH--025_R1_paired.fq.gz BWH--025_R1_unpaired.fq.gz BWH--025_R2_paired.fq.gz BWH--025_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--026_R1.fastq BWH--026_R2.fastq BWH--026_R1_paired.fq.gz BWH--026_R1_unpaired.fq.gz BWH--026_R2_paired.fq.gz BWH--026_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--027_R1.fastq BWH--027_R2.fastq BWH--027_R1_paired.fq.gz BWH--027_R1_unpaired.fq.gz BWH--027_R2_paired.fq.gz BWH--027_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--028_R1.fastq BWH--028_R2.fastq BWH--028_R1_paired.fq.gz BWH--028_R1_unpaired.fq.gz BWH--028_R2_paired.fq.gz BWH--028_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--029_R1.fastq BWH--029_R2.fastq BWH--029_R1_paired.fq.gz BWH--029_R1_unpaired.fq.gz BWH--029_R2_paired.fq.gz BWH--029_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred33 BWH--030_R1.fastq BWH--030_R2.fastq BWH--030_R1_paired.fq.gz BWH--030_R1_unpaired.fq.gz BWH--030_R2_paired.fq.gz BWH--030_R2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50
+
+```
+
+### After trimming FastQC analysis: fastqc2.sh
+
+```{bash}
+#!/bin/bash
+
+module load fastqc/0.11.9
+
+fastqc *paired.fq.gz -t 20 -o FASTQC_afterTrim
+
+```
+
+## Genome download
+
+En primer lugar, descargamos el genoma de referencia de la página web de Ensembl. En la base de datos, no hay un archivo con todo el genoma, por lo que se descargan los datos de cada cromosoma de manera individual y posteriormente se concatenan en un único archivo.
+
+Descargar genoma: download_fasta.sh
+
+
+```{bash}
+#!/bin/bash
+
+for chr in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 MT X Y
+
+do
+
+echo Starting with chromosome ${chr}
+
+wget http://ftp.ensembl.org/pub/current_fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.${chr}.fa.gz
+cat Homo_sapiens.GRCh38.dna.chromosome.${chr}.fa.gz >> Homo_sapiens.GRCh38.dna.chromosome.all.fa.gz
+echo Added the following bytes to general fasta:
+stat -c %s Homo_sapiens.GRCh38.dna.chromosome.all.fa.gz
+
+rm Homo_sapiens.GRCh38.dna.chromosome.${chr}*
+
+echo Finishing with chromosome ${chr}
+
+done
+
+```
+
+For the GTF annotation file: download_GTF.sh
+
+```{bash}
+
+#!/bin/bash
+
+wget http://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.chr.gtf.gz
+gunzip Homo_sapiens.GRCh38.107.chr.gtf.gz
+
+```
+
+## Read alignment
+
+Una vez que se dispone de las lecturas y del genoma de referencia, se puede comenzar el alineamiento de las lecturas. Para ello se emplea el alineador hisat2 y posteriormente samtools para generar los archivos .sam, .bam y sorted.bam.
+
+Alineamiento: alignment_00.sh
+
+```{bash}
+
+#!/bin/bash
+module load hisat2/2.1.0
+module load samtools/1.9
+
+#Build index
+hisat2-build Homo_sapiens.GRCh38.dna.chromosome.all.fa hg38
+
+#Align each sample
+for index in 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+
+do
+        echo Starting with sample ${index}
+        hisat2 -q --rna-strandness RF -k 1 -p 4 -x hg38 -1 trimmed_paired_fastq/BWH0${index}_R1_paired.fq -2 trimmed_paired_fastq/BWH0${index}_R2_paired.fq -S BWH0${index}.sam 2>> summary_alignment.txt
+
+        echo Getting into samtools, sample ${index}
+        samtools view -@ 4 -bo BWH0${index}.sam BWH0${index}.bam
+        samtools sort -@ 4 -o BWH0${index}_sorted.bam BWH0${index}.bam
+        samtools index BWH0${index}_sorted.bam
+
+        echo Finishing with sample ${index}
+done
+
+```
+
+### Results:
+
+```{bash}
+
+grep overall summary_alignment.txt
+grep overall summary_alignment.txt | wc -l
+
+```
+
+## Trasncript count
+
+Una vez se han generado los archivos mencionados en el paso anterior, y tras revisar los archivos .bam con un visualizador (IGV, por ejemplo), se puede proceder al contaje de las lecturas. En este caso, se emplea HTSeq-count.
+
+Contaje de lecturas: count_edit_gff3.bash
+
+```{bash}
+
+#!/bin/bash
+module load miniconda/3.7
+ls -l *sorted.bam | sed 's/_sorted.bam//g' > lista.txt
+
+cat lista.txt | while read index
+do
+        echo Starting with ${index}
+        htseq-count -f bam -r pos -m intersection-strict --stranded reverse 
+        --minaqual 1 -t gene --idattr gene_id ${index}_sorted.bam 
+        Homo_sapiens.GRCh38.107.chr.gtf > ${index}.tsv
+
+        echo Finishing with ${index}
+done
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
