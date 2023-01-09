@@ -11,9 +11,9 @@ knitr::opts_chunk$set(include = TRUE, echo = TRUE, message = FALSE, warning = FA
 
 ```
 
-## Fastq pretreatment
+## Pretratamiento de los archivos .fastq
 
-Concatenate the different runs for each sample, respecting R and F reads
+Las lecturas F y R de cada muestra vienen divididas en varios archivos. Por lo tanto, en primer lugar se realiza una concatenación de las lecturas respecto a las lecturas F y R.
 
 ```{bash}
 
@@ -26,14 +26,16 @@ do
 	gunzip -c *R1.fastq.gz > $d_R1.fastq
 	gunzip -c *R2.fastq.gz > $d_R2.fastq
 	#Move to my folder
-	mv *fastq ../fastqInes	
+	mv *fastq ../fastqMiriam	
 	cd ..
 	echo continuing
 done
 
 ```
 
-### First FastQC analysis: fastqc1.sh
+### Primera comprobación de calidad de las lecturas con FastQC: 
+
+Una vez concatenadas las lecturas, se comprueba la calidad de las mismas.
 
 ```{bash}
 
@@ -45,9 +47,9 @@ fastqc *fastq -t 20 -o FASTQC
 
 ```
 
-### Trimming
+### Trimming:
 
-To produce trimming commands: produce_trim_commands.sh
+Para mejorar la calidad de las lecturas, se recortaron aquellas bases que presentaban una calidad baja al final de las lecturas. Primero se generan los comandos con el siguiente script:
 
 ```{bash}
 
@@ -62,9 +64,7 @@ done
 
 ```
 
-### For the trimming:
-
-trim.sh
+Una vez obtenidos los comandos, se realiza el trimming de las lecturas. Las condiciones para realizar el trimming es que las lecturas tuvieran una longitud mínima de 50 pares de bases y que las últimas 4 bases tuvieran en conjunto una calidad mínima de 20.
 
 ```{bash}
 
@@ -106,7 +106,9 @@ java -jar /usr/local/trimmomatic/0.39/trimmomatic-0.39.jar PE -threads 20 -phred
 
 ```
 
-### After trimming FastQC analysis: fastqc2.sh
+### Comprobación de calidad de las lecturas con FastQC tras el trimming:
+
+Una vez realizado el trimming se vuelve a comprobar la calidad de las lecturas para cerciorarse de que las lecturas tienen una calidad adecuada para continuar con el procesamiento de los datos.
 
 ```{bash}
 #!/bin/bash
@@ -117,12 +119,9 @@ fastqc *paired.fq.gz -t 20 -o FASTQC_afterTrim
 
 ```
 
-## Genome download
+## Descarga del genoma
 
-En primer lugar, descargamos el genoma de referencia de la página web de Ensembl. En la base de datos, no hay un archivo con todo el genoma, por lo que se descargan los datos de cada cromosoma de manera individual y posteriormente se concatenan en un único archivo.
-
-Descargar genoma: download_fasta.sh
-
+Tras preparar y comprobar que las lecturas tienen una calidad adecuda, descargamos el genoma de referencia de la página web de Ensembl. En la base de datos, no hay un archivo con todo el genoma, por lo que se descargan los datos de cada cromosoma de manera individual y posteriormente se concatenan en un único archivo.
 
 ```{bash}
 #!/bin/bash
@@ -146,7 +145,7 @@ done
 
 ```
 
-For the GTF annotation file: download_GTF.sh
+También es necesario descargar el archivo GTF para el posterior alineamiento de las lectaruas puesto que contiene las anotaciones del genoma.
 
 ```{bash}
 
@@ -157,11 +156,9 @@ gunzip Homo_sapiens.GRCh38.107.chr.gtf.gz
 
 ```
 
-## Read alignment
+## Alineamiento de las lecturas
 
-Una vez que se dispone de las lecturas y del genoma de referencia, se puede comenzar el alineamiento de las lecturas. Para ello se emplea el alineador hisat2 y posteriormente samtools para generar los archivos .sam, .bam y sorted.bam.
-
-Alineamiento: alignment_00.sh
+Una vez que se dispone de las lecturas y del genoma de referencia, se puede comenzar el alineamiento de las lecturas. Para ello se emplea el alineador Hisat2 y posteriormente samtools para generar los archivos .sam, .bam y sorted.bam.
 
 ```{bash}
 
@@ -191,6 +188,7 @@ done
 
 ### Results:
 
+Para comprobar los resultados del alineamiento y el número de muestras procesadas se emplea el siguiente script:
 ```{bash}
 
 grep overall summary_alignment.txt
@@ -198,11 +196,11 @@ grep overall summary_alignment.txt | wc -l
 
 ```
 
-## Trasncript count
+El primer comando mostrará el desempeño del alineamiento mientras que el segundo mostrará el número de muestras que han sido procesadas.
+
+## Contaje de las lecturas
 
 Una vez se han generado los archivos mencionados en el paso anterior, y tras revisar los archivos .bam con un visualizador (IGV, por ejemplo), se puede proceder al contaje de las lecturas. En este caso, se emplea HTSeq-count.
-
-Contaje de lecturas: count_edit_gff3.bash
 
 ```{bash}
 
@@ -222,7 +220,7 @@ done
 
 ```
 
-
+Este script devolverá un archivo con la matriz de cuentas de crudas de las lecturas para cada muestra. Estas matrices de cuentas son las que se emplearán para realizar análisis posteriores.
 
 
 
