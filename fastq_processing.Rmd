@@ -33,7 +33,7 @@ done
 
 ```
 
-### Primera comprobación de calidad de las lecturas con FastQC: 
+### Primera comprobación de calidad de las lecturas con FastQC:
 
 Una vez concatenadas las lecturas, se comprueba la calidad de las mismas.
 
@@ -189,6 +189,7 @@ done
 ### Results:
 
 Para comprobar los resultados del alineamiento y el número de muestras procesadas se emplea el siguiente script:
+
 ```{bash}
 
 grep overall summary_alignment.txt
@@ -221,35 +222,3 @@ done
 ```
 
 Este script devolverá un archivo con la matriz de cuentas de crudas de las lecturas para cada muestra. Estas matrices de cuentas son las que se emplearán para realizar análisis posteriores.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
